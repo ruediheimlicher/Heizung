@@ -1,0 +1,24 @@
+TWI_Slave Heizung_56_86
+13.12.10
+Schalterposition anstelle von Servowert
+
+10.12.10
+
+
+6.12.10
+TWI_NEW_BIT in SlaveStatus neu eingefuerht. 
+Wird in ISR von twislave gesetzt und nach erster Aktion zurueckgesetzt.
+Bewirkt, dass die Aktionen nach dem Laden nur einmal ausgeführt werden.
+
+
+4.12.10
+timer1 anstatt timer2 fuer PWM
+
+Startroutinen off
+
+29.10.10: Takt/256 fuer Timer Servo
+
+
+22.8.09 l 813:  txbuffer[BRENNER]= ~(PINB & (1<< BRENNERPIN)); auskommentiert
+
+20.10.10:	4 MHz Takt in Makefile
