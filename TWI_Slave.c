@@ -89,18 +89,24 @@
 #define VORLAUF			0	// Byte fuer Vorlauftemperatur
 #define RUECKLAUF			1	// Byte fuer Ruecklauftemperatur
 #define AUSSEN				2	// Byte fuer Aussentemperatur
-#define BRENNER			3	// Byte fuer Brennerstatus
-#define RINNE				4	// Byte fuer Dachrinnenstatus
+#define STATUS				3	// Byte in txbuffer fuer Status
 
 #define ECHO				6	// Byte fuer Echo der Daten vom Master 
 
 
-#define STATUS				3	// Byte in txbuffer fuer Status
-#define BRENNERPIN		2	// PIN 2 von PORT B als Eingang fuer Brennerstatus
 
-#define MANUELL			7	// Bit 7 von Status 
+// Bits in Status
+#define RINNE				4	// Bit von Status fuer Dachrinnenstatus
+#define MANUELL			7	// Bit von Status fuer manuelle Bedienung(Tastatur)
+
+#define MANUELLNEU		6	// Bit von Status. Gesetzt wenn neue Schalterposition eingestellt
+
+
+
+// PINS
+#define BRENNERPIN		2	// PIN 2 von PORT B als Eingang fuer Brennerstatus
 #define MANUELLPIN		5	// Pin 5 von PORT D fuer Anzeige Manuell
-#define MANUELLNEU		6	// Pin 6 von Status. Gesetzt wenn neue Schalterposition eingestellt
+
 #define MANUELLTIMEOUT	100 // Loopled-counts bis Manuell zurueckgesetzt wird. 02FF: ca. 100 s
 #define LOOPLEDPORT		PORTD
 #define LOOPLED			4
@@ -619,6 +625,20 @@ void main (void)
 			//lcd_putint2(rxbuffer[3]);
 			
 			{
+            // Kalibrierung Servo:
+            // Schalterpositionen anpassen
+            if (rxbuffer[4] & 0x80) // bit 7
+            {
+               uint8_t tempPos = rxbuffer[4] & 0x0F; // bit 0-3
+               uint8_t  tempWert = rxbuffer[5];
+               Servoposition[tempPos] = tempWert;
+               
+               
+            }
+            
+            
+            
+            
 				if (rxbuffer[3] < 5) // zulaessiger Bereich
 				{	
 				/*				
@@ -744,7 +764,8 @@ void main (void)
 				{
 					//delay_ms(1000);
 					//OSZIALO;
-					//Schaltuhr ein
+			
+               //Schaltuhr ein
 					lcd_gotoxy(18,1);
 					lcd_puts("B+\0");
 					//OSZIAHI;
@@ -884,7 +905,7 @@ void main (void)
 					
 					
 					//	Brenner abfragen
-					txbuffer[STATUS]=(PINB & (1<< BRENNERPIN));	// Brennerstatus Byte 3 
+					txbuffer[STATUS]=(PINB & (1<< BRENNERPIN));	// Brennerstatus Byte 2
 					//lcd_gotoxy(17,1);
 					//lcd_puts("B\0");
 					

@@ -1,0 +1,115 @@
+#define test 0
+#define TWI_PORT		PORTC
+#define TWI_PIN		PINC
+#define TWI_DDR		DDRC
+
+#define SDAPIN		4
+#define SCLPIN		5
+
+#define TWI_WAIT_BIT		3
+#define TWI_OK_BIT		4
+//#define TWI_NEW_BIT		5
+#define WDTBIT		7
+
+
+
+#define HEIZUNGPORT	PORTD		// Ausgang fuer Heizung
+#define UHRBIT       0
+
+#define SERVOPWMBIT  4        // Master soll Daten fuer Servoposition holen
+
+#define RINNEBIT 2
+
+#define SERVOPORT	PORTD		// Ausgang fuer Servo
+#define SERVODDR	DDRD		// DDR fuer Servo
+
+#define CONTROL_A 6				// Enable fuer Servo, Active H
+#define CONTROL_B 7				// Impuls für Servo
+
+#define FRAME_TIME			20 // Periodendauer Servoimpuls
+#define STELLZEITDELAY		10	// Delay fuer Ruekstellung des Servos auf die korrekte Stellung
+#define DELTA					5		// Mass fuer Weiterstellen des Servos zur Sicherheit
+// Definitionen fuer mySlave
+//#define UHREIN 4
+//#define UHRAUS 5
+
+// Definitionen Slave Heizung
+#define UHREIN			0
+#define UHRAUS			1
+
+#define RINNEEIN		2
+#define RINNEAUS		3
+
+
+#define TASTE1		19
+#define TASTE2		29
+#define TASTE3		44
+#define TASTE4		67
+#define TASTE5		94
+#define TASTE6		122
+#define TASTE7		155
+#define TASTE8		186
+#define TASTE9		205
+#define TASTEL		223
+#define TASTE0		236
+#define TASTER		248
+#define TASTATURPORT PORTC
+#define TASTATURPIN		3
+
+// Bytes in txbuffer
+#define VORLAUF			0	// Byte fuer Vorlauftemperatur
+#define RUECKLAUF			1	// Byte fuer Ruecklauftemperatur
+#define AUSSEN				2	// Byte fuer Aussentemperatur
+//#define BRENNER			3	// Byte fuer Brennerstatus
+#define STATUS				3	// Byte in txbuffer fuer Status
+#define ECHO				6	// Byte fuer Echo der Daten vom Master
+
+
+// Bits in Status
+#define RINNE				4	// Bit fuer Dachrinnenstatus // Servopos bit bit 0-3
+#define MANUELL			7	// Bit 7 von Status
+
+
+
+
+#define BRENNERPIN		2	// PIN 2 von PORT B als Eingang fuer Brennerstatus
+
+
+#define MANUELLPIN		5	// Pin 5 von PORT D fuer Anzeige Manuell
+#define MANUELLNEU		6	// Pin 6 von Status. Gesetzt wenn neue Schalterposition eingestellt
+#define MANUELLTIMEOUT	100 // Loopled-counts bis Manuell zurueckgesetzt wird. 02FF: ca. 100 s
+#define LOOPLEDPORT		PORTD
+#define LOOPLED			4
+
+#define STARTDELAYBIT	0
+#define HICOUNTBIT		1
+
+#define OSZIPORT				PORTD
+#define OSZIPORTDDR			DDRD
+#define OSZIPORTPIN			PIND
+#define PULSA					7
+
+#define OSZIALO OSZIPORT &= ~(1<<PULSA)
+#define OSZIAHI OSZIPORT |= (1<<PULSA)
+#define OSZIATOG OSZIPORT ^= (1<<PULSA)
+
+/*
+rxbuffer: Daten von Master
+0: Heizungstatus 
+1:
+2: Rinnestatus
+3: Einzustellende Servoposition, <5
+
+Kalibrierung Servo:
+4: bit 0-3: Schalterposition bit7: Servo anpassen
+5: neuer Wert fuer Schalterposition aus byte 4
+6
+7
+
+txbuffer: Daten zum Master
+
+
+
+*/
+
+
