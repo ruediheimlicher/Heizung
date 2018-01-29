@@ -332,7 +332,8 @@ ISR (TWI_vect)
 				
 				TWCR_NACK; //letztes Byte senden, danach NACK erwarten
 				buffer_adr=0xFF; //Bufferposition ist undefiniert
-			}
+			
+         }
 			break;
 			
 			case TW_ST_DATA_NACK: //0xC0 Keine Daten mehr gefordert 
