@@ -22,6 +22,11 @@
 
 #include "adc.c"
 
+// Files DS18s20
+#include "onewire.c"
+#include "ds18x20.c"
+#include "crc8.c"
+
 //***********************************
 //Heizung							*
 #define SLAVE_ADRESSE 0x56 //		*
@@ -124,6 +129,8 @@
 #define OSZIATOG OSZIPORT ^= (1<<PULSA)
 
 
+
+
 void eep_write_wochentag(uint8_t *ablauf[24], uint8_t *tag);
 void lcd_puts(const char *s);
 
@@ -163,7 +170,98 @@ volatile uint16_t					Manuellcounter=0; // Counter fuer Timeout
 
 uint8_t EEMEM WDT_ErrCount;	// Akkumulierte WDT Restart Events
 
+//#define MAXSENSORS 2
+static uint8_t gSensorIDs[MAXSENSORS][OW_ROMCODE_SIZE];
+static int16_t gTempdata[MAXSENSORS]; // temperature times 10
+static uint8_t gTemp_measurementstatus=0; // 0=ok,1=error
+static int8_t gNsensors=0;
 
+uint8_t search_sensors(void)
+{
+   uint8_t i;
+   uint8_t id[OW_ROMCODE_SIZE];
+   uint8_t diff, nSensors;
+   
+   
+   ow_reset();
+   
+   nSensors = 0;
+   
+   diff = OW_SEARCH_FIRST;
+   while ( diff != OW_LAST_DEVICE && nSensors < MAXSENSORS )
+   {
+      DS18X20_find_sensor( &diff, &id[0] );
+      
+      if( diff == OW_PRESENCE_ERR )
+      {
+         lcd_gotoxy(0,1);
+         lcd_puts("No Sensor found\0" );
+         
+         delay_ms(800);
+         lcd_clr_line(1);
+         break;
+      }
+      
+      if( diff == OW_DATA_ERR )
+      {
+         lcd_gotoxy(0,1);
+         lcd_puts("Bus Error\0" );
+         break;
+      }
+      lcd_gotoxy(4,1);
+      
+      for ( i=0; i < OW_ROMCODE_SIZE; i++ )
+      {
+         //lcd_gotoxy(15,1);
+         //lcd_puthex(id[i]);
+         
+         gSensorIDs[nSensors][i] = id[i];
+         //delay_ms(100);
+      }
+      
+      nSensors++;
+   }
+   
+   return nSensors;
+}
+
+// start a measurement for all sensors on the bus:
+void start_temp_meas(void)
+{
+   
+   gTemp_measurementstatus=0;
+   if ( DS18X20_start_meas(NULL) != DS18X20_OK)
+   {
+      gTemp_measurementstatus=1;
+   }
+}
+
+
+// read the latest measurement off the scratchpad of the ds18x20 sensor
+// and store it in gTempdata
+void read_temp_meas(void)
+{
+   uint8_t i;
+   uint8_t subzero, cel, cel_frac_bits;
+   for ( i=0; i<gNsensors; i++ )
+   {
+      
+      if ( DS18X20_read_meas( &gSensorIDs[i][0], &subzero,
+                             &cel, &cel_frac_bits) == DS18X20_OK )
+      {
+         gTempdata[i]=cel*10;
+         gTempdata[i]+=DS18X20_frac_bits_decimal(cel_frac_bits);
+         if (subzero)
+         {
+            gTempdata[i]=-gTempdata[i];
+         }
+      }
+      else
+      {
+         gTempdata[i]=0;
+      }
+   }
+}
 
 
 uint8_t Tastenwahl(uint8_t Tastaturwert)
@@ -462,6 +560,34 @@ void main (void)
 	Servoimpulsdauer=Servoposition[Schalterposition];
 	timer1(Servoposition[0]);
 	
+   
+   /*
+    #pragma mark DS1820 init
+    // DS1820 init-stuff begin
+    uint8_t i=0;
+    uint8_t nSensors=0;
+    ow_reset();
+    gNsensors = search_sensors();
+    
+    delay_ms(100);
+    lcd_gotoxy(0,0);
+    lcd_puts("Sens: \0");
+    lcd_puthex(gNsensors);
+    if (gNsensors>0)
+    {
+    lcd_clr_line(1);
+    start_temp_meas();
+    }
+    i=0;
+    while(i<MAXSENSORS)
+    {
+    gTempdata[i]=0;
+    i++;
+    }
+    // DS1820 init-stuff end
+
+    
+    */
 	initOSZI();
 	OSZIAHI;
 #pragma mark while
