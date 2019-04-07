@@ -10,8 +10,42 @@
 #include "adc.h"
 #include <avr/io.h>
 
+#define ADC_KORR 0.88
+
 
 struct adcwert16 ADCWert16;
+
+uint16_t readKanal_raw(uint8_t derKanal) //Unsere Funktion zum ADC-Channel aus lesen
+{
+   uint8_t i;
+   uint16_t result = 0;         //Initialisieren wichtig, da lokale Variablen
+   //nicht automatisch initialisiert werden und
+   ADMUX = 0;                              //zufällige Werte haben. Sonst kann Quatsch rauskommen
+   ADMUX = (derKanal & 0x07);
+   //   ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1);    // Frequenzvorteiler auf 32 setzen und ADC aktivieren
+   
+   // interne Referenz 2.56V
+   //ADMUX |= (1<<REFS2);
+   // ADMUX |= (1<<REFS1);
+   // ADMUX |= (1<<REFS0);
+   ADMUX |= (1<<REFS1) | (1<<REFS0); // interne Referenzspannung nutzen
+   ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS1);    // Frequenzvorteiler auf 32 setzen und ADC aktivieren
+   
+   // Eigentliche Messung - Mittelwert aus 4 aufeinanderfolgenden Wandlungen
+   for(i=0;i<2;i++)
+   {
+      ADCSRA |= (1<<ADSC);            // eine Wandlung
+      while ( ADCSRA & (1<<ADSC) ) {
+         ;     // auf Abschluss der Wandlung warten
+      }
+      result += ADCW;            // Wandlungsergebnisse aufaddieren
+   }
+   //  ADCSRA &= ~(1<<ADEN);             // ADC deaktivieren ("Enable-Bit" auf LOW setzen)
+   
+   result /= 2;                     // Summe durch vier teilen = arithm. Mittelwert
+   return result;
+   return (result * ADC_KORR);
+}
 
 
 struct adcwert16 readKanal16Bit(uint8_t kanal)
@@ -54,7 +88,7 @@ void initADC(uint8_t derKanal)
    ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS0);    // Frequenzvorteiler auf 32 setzen und ADC aktivieren 
  
   ADMUX = derKanal;                      // übergebenen Kanal waehlen
-
+   // Ohne REFSx: Externe Vref
 	//ADMUX |= (1<<REFS1) | (1<<REFS0); // interne Referenzspannung nutzen 
   //if (test)
   {
@@ -72,10 +106,9 @@ void initADC(uint8_t derKanal)
 uint16_t readKanal(uint8_t derKanal) //Unsere Funktion zum ADC-Channel aus lesen
 {
   uint8_t i;
-  uint16_t result = 0;         //Initialisieren wichtig, da lokale Variablen
-                               //nicht automatisch initialisiert werden und
-                               //zufällige Werte haben. Sonst kann Quatsch rauskommen
- ADMUX = derKanal; 
+  uint16_t result = 0;         
+ ADMUX = derKanal; // Ohne REFSx: Externe Vref
+   
   // Eigentliche Messung - Mittelwert aus 4 aufeinanderfolgenden Wandlungen
   for(i=0;i<4;i++)
   {
@@ -107,6 +140,7 @@ uint16_t readKanalOrig(uint8_t derKanal, uint8_t num) //Unsere Funktion zum ADC-
    ADCSRA = (1<<ADEN) | (1<<ADPS2) | (1<<ADPS0);    // Frequenzvorteiler auf 32 setzen und ADC aktivieren 
  
   ADMUX = derKanal;                      // übergebenen Kanal waehlen
+   // Ohne REFSx: Externe Vref
 //  ADMUX |= (1<<REFS1) | (1<<REFS0); // interne Referenzspannung nutzen 
 //  ADMUX |= (1<<REFS0); // VCC als Referenzspannung nutzen 
  
