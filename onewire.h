@@ -15,7 +15,7 @@ extern "C" {
 
 
 // Atmega16 PORTB PIN2 als Anschluss fuer DS-Sensor
-#define OW_PIN  PORTB2
+#define OW_PIN  PORTB3
 #define OW_IN   PINB
 #define OW_OUT  PORTB
 #define OW_DDR  DDRB

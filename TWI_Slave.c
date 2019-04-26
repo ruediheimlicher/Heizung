@@ -181,8 +181,7 @@ uint8_t search_sensors(void)
    uint8_t i;
    uint8_t id[OW_ROMCODE_SIZE];
    uint8_t diff, nSensors;
-   
-   
+      
    ow_reset();
    
    nSensors = 0;
@@ -194,31 +193,32 @@ uint8_t search_sensors(void)
       
       if( diff == OW_PRESENCE_ERR )
       {
-         lcd_gotoxy(0,1);
+         lcd_gotoxy(0,2);
          lcd_puts("No Sensor found\0" );
          
          delay_ms(800);
-         lcd_clr_line(1);
+         lcd_clr_line(3);
          break;
       }
       
       if( diff == OW_DATA_ERR )
       {
-         lcd_gotoxy(0,1);
+         lcd_gotoxy(0,2);
          lcd_puts("Bus Error\0" );
          break;
       }
-      lcd_gotoxy(4,1);
+      lcd_gotoxy(4,2);
       
+      // ID schreiben
       for ( i=0; i < OW_ROMCODE_SIZE; i++ )
       {
-         //lcd_gotoxy(15,1);
-         //lcd_puthex(id[i]);
+         lcd_gotoxy(2*i,3);
+         lcd_puthex(id[i]);
          
          gSensorIDs[nSensors][i] = id[i];
-         //delay_ms(100);
+         
       }
-      
+      delay_ms(1000);
       nSensors++;
    }
    
@@ -343,7 +343,7 @@ void slaveinit(void)
 	SlaveStatus=0;
 	SlaveStatus |= (1<<TWI_WAIT_BIT);
 
-	
+   
 	DDRC &= ~(1<<PORTC0);	//Pin 0 von PORT C als Eingang fuer Vorlauf 	
 //	PORTC |= (1<<DDC0); //Pull-up
 	DDRC &= ~(1<<PORTC1);	//Pin 1 von PORT C als Eingang fuer Ruecklauf 	
@@ -570,14 +570,15 @@ void main (void)
     gNsensors = search_sensors();
     
     delay_ms(100);
-    lcd_gotoxy(0,0);
+    lcd_gotoxy(0,2);
     lcd_puts("Sens: \0");
     lcd_puthex(gNsensors);
     if (gNsensors>0)
     {
-    lcd_clr_line(1);
+    lcd_clr_line(3);
     start_temp_meas();
     }
+    
     i=0;
     while(i<MAXSENSORS)
     {
@@ -973,7 +974,7 @@ void main (void)
             // ***********
 				
             // Echo laden
-				txbuffer[ECHO] = Echo;
+				//txbuffer[ECHO] = Echo;
 				//lcd_gotoxy(0,0);
 				//lcd_puts("     \0");
 				//lcd_gotoxy(0,0);
@@ -1075,7 +1076,10 @@ void main (void)
 			
 			
 			rxdata=0;
-			//PORTD &= ~(1<<PD3); // 22.01.10 Kollision mit RINNEAUS
+         
+         // read DS1820
+         
+         
 			
 		}
 		
